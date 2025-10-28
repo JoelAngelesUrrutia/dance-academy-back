@@ -1,0 +1,41 @@
+services:
+  db:
+    image: postgres:16
+    container_name: dance_db
+    restart: always
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - dance_net
+    ports:
+      - "5432:5432"
+
+  app:
+    image: openjdk:21
+    container_name: dance_api
+    working_dir: /app
+    volumes:
+      - ./app:/app # monta tu código fuente
+      - ~/.m2:/root/.m2 # cache de Maven
+    command: ./mvnw spring-boot:run
+    networks:
+      - dance_net
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+    depends_on:
+      - db
+
+volumes:
+  postgres_data:
+
+networks:
+  dance_net:
